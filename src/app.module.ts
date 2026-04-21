@@ -26,12 +26,6 @@ class AppController {
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'database.sqlite',
-      entities: [User, Task],
-      synchronize: true, // Set to false in production
-    }),
     AuthModule,
     TaskModule,
     PostModule,

@@ -1,14 +1,15 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, UnauthorizedException, UseGuards, Req, Param } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UnauthorizedException, UseGuards, Req, Param, Patch } from "@nestjs/common";
 import { AuthService } from "./auth.service.js";
 import { ApiOperation, ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthDto } from "../dto/auth.dto.js";
 import { RegisterDto } from "../dto/register.dto.js";
+import { UpdateProfileDto } from "../dto/update-profile.dto.js";
 import { JwtService } from "@nestjs/jwt";
 import { UtilService } from "../../../common/services/util.service.js";
 import { AppException } from "../../../common/exceptions/app.exception.js";
 import { request } from "node:http";
 import { AuthGuard } from "../../../common/guards/auth.guard.js";
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @ApiTags('Auth')
 @Controller("auth")
@@ -28,6 +29,14 @@ export class AuthController {
       message: "Usuario registrado con éxito",
       userId: user.id
     };
+  }
+
+  @Get("check/:username")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Verifica si un nombre de usuario está disponible" })
+  public async checkUsername(@Param("username") username: string) {
+    const user = await this.authSvc.getUserByUsername(username);
+    return { available: !user };
   }
 
   @Post("login")
@@ -79,11 +88,32 @@ export class AuthController {
   }
 
   @Get("me")
-  @UseGuards()
-  @ApiOperation({ summary: "Extrae el ID del usuario desde el token y busca la informacion" })
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: "Extrae el ID del usuario desde el token y busca la informacion completa" })
   public async getProfile(@Req() request: any) {
-    const user = request['user']
-    return user;
+    const session = request['user'];
+    const user = await this.authSvc.getUserById(session.id);
+    
+    if (!user) {
+        throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    // No devolver password ni hash de sesion
+    const { password, hash, ...safeUser } = user;
+    return safeUser;
+  }
+
+  @Patch("me")
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: "Actualiza la informacion del perfil del usuario logueado" })
+  public async updateProfile(@Req() request: any, @Body() updateDto: UpdateProfileDto) {
+    const session = request['user'];
+    const updatedUser = await this.authSvc.updateUser(session.id, updateDto);
+    
+    const { password, hash, ...safeUser } = updatedUser;
+    return safeUser;
   }
 
   @Post("refresh")

@@ -2,7 +2,7 @@ import { Injectable, ConflictException } from "@nestjs/common";
 import { PrismaService } from "../../../common/services/prisma.service.js";
 import { User } from "@prisma/client";
 import { RegisterDto } from "../dto/register.dto.js";
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -43,6 +43,31 @@ export class AuthService {
         return await this.prisma.user.update({
             where: {id: user_id},
             data: {hash}
+        });
+    }
+
+    public async updateUser(id: number, data: Partial<User>) {
+        // Si intenta cambiar el nombre de usuario, verificar disponibilidad
+        if (data.username) {
+            const existingUser = await this.prisma.user.findFirst({
+                where: { 
+                    username: data.username,
+                    NOT: { id: id }
+                }
+            });
+
+            if (existingUser) {
+                throw new ConflictException("Este nombre de usuario ya está siendo utilizado.");
+            }
+        }
+
+        return await this.prisma.user.update({
+            where: { id },
+            data: {
+                name: data.name,
+                lastname: data.lastname,
+                username: data.username
+            }
         });
     }
 

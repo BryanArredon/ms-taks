@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import "dotenv/config";
 import pg from "pg";
 
@@ -12,7 +12,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   const username = "admin";
   const password = "Admin123!";
-  
+
   console.log(`🚀 Iniciando seeding para el usuario: ${username}...`);
 
   // Hashear la contraseña
