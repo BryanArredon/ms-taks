@@ -1,4 +1,4 @@
-import { Controller, Get, Delete, Param, UseGuards, HttpCode, HttpStatus } from "@nestjs/common";
+import { Controller, Get, Delete, Param, UseGuards, HttpCode, HttpStatus, Patch, Req, Body } from "@nestjs/common";
 import { UserService } from "./user.service.js";
 import { AdminGuard } from "../../../common/guards/admin.guard.js";
 import { ApiOperation, ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -14,6 +14,19 @@ export class UserController {
     @ApiOperation({ summary: "Lista todos los usuarios (Solo Admin)" })
     public async getUsers() {
         return await this.userSvc.getUsers();
+    }
+
+    @Patch(":id/role")
+    @UseGuards(AdminGuard)
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: "Cambia el rol de un usuario (Solo Admin)" })
+    public async updateRole(
+        @Req() req: any, 
+        @Param("id") id: string, 
+        @Body("role") role: string
+    ) {
+        const adminId = req.user.id;
+        return await this.userSvc.updateRole(Number(id), role, adminId);
     }
 
     @Delete(":id")

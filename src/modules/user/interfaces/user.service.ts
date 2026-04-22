@@ -21,6 +21,29 @@ export class UserService {
         });
     }
 
+    public async updateRole(id: number, newRole: string, adminId: number) {
+        const updated = await this.prisma.user.update({
+            where: { id },
+            data: { role: newRole }
+        });
+
+        // Audit log
+        await this.prisma.logs.create({
+            data: {
+                statusCode: 200,
+                timestamp: new Date(),
+                path: `/user/${id}/role`,
+                type: 'CRITICAL',
+                description: `CAMBIO DE ROL: El administrador (ID: ${adminId}) cambió el rol del usuario (ID: ${id}) a "${newRole}"`,
+                error: '',
+                errorCode: '',
+                session_id: adminId
+            }
+        });
+
+        return updated;
+    }
+
     public async deleteUser(id: number) {
         // Verificar si tiene tareas
         const user = await this.prisma.user.findUnique({

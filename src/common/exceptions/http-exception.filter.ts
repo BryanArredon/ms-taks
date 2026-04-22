@@ -30,7 +30,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
             path: request.url,
             error: errorMessage,
             errorCode: (exception as any)?.errorCode || "UNKNOWN_ERROR",
-            session_id: (request as any).user?.id, // Assuming user is attached to request
+            type: "ERROR",
+            description: `Excepción capturada: ${errorMessage}`,
+            session_id: (request as any).user?.id, 
         });
 
         response.status(status).json({

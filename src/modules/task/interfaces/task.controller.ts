@@ -20,35 +20,39 @@ export class TaskController {
     }
 
     @Get(":id")
-    @ApiOperation({ summary: 'Lista las tareas disponibles' })
-    public async getTaskById(@Param("id", ParseIntPipe) id: number): Promise<any> {
+    @ApiOperation({ summary: 'Lista una tarea específica si pertenece al usuario' })
+    public async getTaskById(@Req() req: any, @Param("id", ParseIntPipe) id: number): Promise<any> {
         try {
-            return await this.taskSvc.getTaskById(id);
+            const userId = req.user.id;
+            return await this.taskSvc.getTaskById(id, userId);
         } catch (error) {
-            throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+            throw new HttpException('Task not found or access denied', HttpStatus.NOT_FOUND);
         }
     }
 
     @Post()
-    public async createTask(@Body() task: CreateTaskDto): Promise<any> {
-        return await this.taskSvc.createTask(task);
+    public async createTask(@Req() req: any, @Body() task: CreateTaskDto): Promise<any> {
+        const userId = req.user.id;
+        return await this.taskSvc.createTask(task, userId);
     }
 
     @Put(":id")
-    public async updateTask(@Param("id", ParseIntPipe) id: number, @Body() task: Partial<CreateTaskDto>): Promise<any> {
+    public async updateTask(@Req() req: any, @Param("id", ParseIntPipe) id: number, @Body() task: Partial<CreateTaskDto>): Promise<any> {
         try {
-            return await this.taskSvc.updateTask(id, task);
+            const userId = req.user.id;
+            return await this.taskSvc.updateTask(id, userId, task);
         } catch (error) {
-            throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+            throw new HttpException('Task not found or access denied', HttpStatus.NOT_FOUND);
         }
     }
 
     @Delete(":id")
-    public async deleteTask(@Param("id", ParseIntPipe) id: number): Promise<void> {
+    public async deleteTask(@Req() req: any, @Param("id", ParseIntPipe) id: number): Promise<void> {
         try {
-            await this.taskSvc.deleteTask(id);
+            const userId = req.user.id;
+            await this.taskSvc.deleteTask(id, userId);
         } catch (error) {
-            throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+            throw new HttpException('Task not found or access denied', HttpStatus.NOT_FOUND);
         }
     }
 

@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, UnauthorizedException, UseGuards, Req, Param, Patch } from "@nestjs/common";
 import { AuthService } from "./auth.service.js";
+import { LogsService } from "../../logs/logs.service.js";
 import { ApiOperation, ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthDto } from "../dto/auth.dto.js";
 import { RegisterDto } from "../dto/register.dto.js";
@@ -17,7 +18,8 @@ export class AuthController {
 
   constructor(
     private readonly authSvc: AuthService,
-    private readonly utilSvc: UtilService
+    private readonly utilSvc: UtilService,
+    private readonly logsSvc: LogsService
   ) {}
 
   @Post("register")
@@ -76,6 +78,15 @@ export class AuthController {
 
       //Generar token de acceso por 1h
       const jwt = await this.utilSvc.generateJWT(payload,'1h');
+
+      // Log success activity
+      await this.logsSvc.createLog({
+        statusCode: 200,
+        path: '/auth/login',
+        type: 'ACTIVITY',
+        description: `Inicio de sesión exitoso para el usuario: ${user.username}`,
+        session_id: user.id
+      });
 
       return {
         access_token: jwt,
