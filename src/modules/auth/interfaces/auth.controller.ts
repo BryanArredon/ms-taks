@@ -66,7 +66,7 @@ export class AuthController {
       const payload = {
         id: user.id,
         username: user.username,
-        role: user.role,
+        role: user.role.name,
       };
 
 
@@ -112,7 +112,10 @@ export class AuthController {
 
     // No devolver password ni hash de sesion
     const { password, hash, ...safeUser } = user;
-    return safeUser;
+    return {
+        ...safeUser,
+        role: user.role.name // Flatten role for frontend
+    };
   }
 
   @Patch("me")
@@ -155,7 +158,7 @@ export class AuthController {
       const newPayload = { 
         id: user.id, 
         username: user.username,
-        role: user.role,
+        role: user.role.name,
       };
       
       const newAccessToken = await this.utilSvc.generateJWT(newPayload, '1h');

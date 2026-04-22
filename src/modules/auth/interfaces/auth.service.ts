@@ -9,15 +9,17 @@ export class AuthService {
 
     constructor(private readonly prisma: PrismaService ) {}
     
-    public async getUserByUsername(username: string): Promise<User | null> {
+    public async getUserByUsername(username: string): Promise<any | null> {
         return await this.prisma.user.findFirst({
-            where: { username }
+            where: { username },
+            include: { role: true }
         });
     }
 
-    public async getUserById(id: number): Promise<User | null> {
+    public async getUserById(id: number): Promise<any | null> {
         return await this.prisma.user.findFirst({
-            where: { id }
+            where: { id },
+            include: { role: true }
         });
     }
 
@@ -35,7 +37,9 @@ export class AuthService {
                 lastname: data.lastname,
                 username: data.username,
                 password: hashedPassword,
-            }
+                roleId: 2 // Default to 'user' role
+            },
+            include: { role: true }
         });
     }
 
