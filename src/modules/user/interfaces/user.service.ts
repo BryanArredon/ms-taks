@@ -141,7 +141,7 @@ export class UserService {
         return { ...updated, role: updated.role.name };
     }
 
-    public async deleteUser(id: number) {
+    public async deleteUser(id: number, adminId: number) {
         // Verificar si tiene tareas
         const user = await this.prisma.user.findUnique({
             where: { id },
@@ -162,6 +162,20 @@ export class UserService {
 
         await this.prisma.user.delete({
             where: { id }
+        });
+
+        // Audit log
+        await this.prisma.logs.create({
+            data: {
+                statusCode: 200,
+                timestamp: new Date(),
+                path: `/user/${id}`,
+                type: 'CRITICAL',
+                description: `ELIMINACIÓN DE USUARIO: El administrador (ID: ${adminId}) eliminó al usuario "${user.username}" (ID: ${id})`,
+                error: '',
+                errorCode: '',
+                session_id: adminId
+            }
         });
 
         return { message: "Usuario eliminado con éxito" };

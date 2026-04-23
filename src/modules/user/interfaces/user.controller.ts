@@ -59,7 +59,8 @@ export class UserController {
     @HttpCode(HttpStatus.OK)
     @ApiBearerAuth('access-token')
     @ApiOperation({ summary: "Elimina un usuario si no tiene tareas (Solo Admin)" })
-    public async deleteUser(@Param("id") id: string) {
-        return await this.userSvc.deleteUser(Number(id));
+    public async deleteUser(@Req() req: any, @Param("id") id: string) {
+        const adminId = req.user.id;
+        return await this.userSvc.deleteUser(Number(id), adminId);
     }
 }

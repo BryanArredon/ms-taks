@@ -90,6 +90,15 @@ export class TaskService {
             data: updateData,
             include: { author: true }
         });
+
+        await this.logsSvc.createLog({
+            statusCode: 200,
+            path: `/api/task/${id}`,
+            type: 'ACTIVITY',
+            description: `Tarea actualizada (ID: ${id}): "${updated.title}" por el usuario ID: ${userId}`,
+            session_id: userId
+        });
+
         return mapPrismaTaskToDto(updated);
     }
         
